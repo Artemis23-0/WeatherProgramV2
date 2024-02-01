@@ -34,7 +34,7 @@ int sFifthWidth = sWidth / 5;
 // Weather/zip variables
 String strWeatherIcon;
 String strWeatherDesc;
-String zipCode;
+String zipCode = "92504";
 String cityName;
 double tempNow;
 double tempMin;
@@ -67,6 +67,8 @@ char number2 = numbers[2];
 char number3 = numbers[5];
 char number4 = numbers[0];
 char number5 = numbers[4];
+
+//zipCode = number1 + number2 + number3 + number4 + number5;
 
 
 ////////////////////////////////////////////////////////////////////
@@ -104,9 +106,6 @@ void setup() {
 // Put your main code here, to run repeatedly
 ///////////////////////////////////////////////////////////////
 void loop() {
-
-    Serial.print("Finally finished connecting");
-
     if (M5.BtnB.wasPressed()) {
         if (screen == S_WEATHER) {
             screen = S_ZIP_EDIT;
@@ -175,7 +174,8 @@ void fetchWeatherDetails() {
     // Hardcode the specific city,state,country into the query
     // Examples: https://api.openweathermap.org/data/2.5/weather?zip=92504,usa&units=imperial&appid=YOUR_API_KEY
     //////////////////////////////////////////////////////////////////
-    String serverURL = urlOpenWeather + "zip=92504,usa&units=imperial&appid=" + apiKey;
+    //String serverURL = urlOpenWeather + "q=sacramento,ca,usa&units=imperial&appid=" + apiKey;
+    String serverURL = urlOpenWeather + "zip=" + zipCode + ",us&units=imperial&appid=" + apiKey;
     //Serial.println(serverURL); // Debug print
 
     //////////////////////////////////////////////////////////////////
