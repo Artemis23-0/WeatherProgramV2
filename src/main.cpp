@@ -5,6 +5,13 @@
 #include "WiFi.h"
 
 ////////////////////////////////////////////////////////////////////
+// State
+////////////////////////////////////////////////////////////////////
+
+enum Screen { S_WEATHER, S_ZIP_EDIT };
+
+
+////////////////////////////////////////////////////////////////////
 // Variables
 ////////////////////////////////////////////////////////////////////
 // TODO 3: Register for openweather account and get API key
@@ -22,14 +29,45 @@ unsigned long timerDelay = 5000;  // 5000; 5 minutes (300,000ms) or 5 seconds (5
 // LCD variables
 int sWidth;
 int sHeight;
+int sFifthWidth = sWidth / 5;
 
 // Weather/zip variables
 String strWeatherIcon;
 String strWeatherDesc;
+String zipCode;
 String cityName;
 double tempNow;
 double tempMin;
 double tempMax;
+
+// Screen Variables
+static Screen screen = S_WEATHER;
+
+//ZipCode Variables of an array consisting of the different numbers
+char numbers [10] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'};
+// array for top row of buttons to change zip code
+Button N1U(5, 5, 5, 5, "Number 1 Up");
+Button N2U(15, 5, 5, 5, "Number 2 Up");
+Button N3U(30, 5, 5, 5, "Number 3 Up");
+Button N4U(45, 5, 5, 5, "Number 4 Up");
+Button N5U(60, 5, 5, 5, "Number 5 Up");
+Button topButtons [5] = {N1U, N2U, N3U, N4U, N5U};
+// array for bottom row of buttons to change zip code
+Button N1D(5, sHeight - 10, 10, 10, "First Number - Bottom");
+Button bottomButtons [5] = {
+    Button(sWidth - sFifthWidth*4, sHeight - 10, 10, 10, "First Number - Bottom"),
+    Button(sWidth - sFifthWidth*3, sHeight - 10, 10, 10, "Second Number - Bottom"),
+    Button(sWidth - sFifthWidth*2, sHeight - 10, 10, 10, "Second Number - Bottom"),
+    Button(sWidth - sFifthWidth*1, sHeight - 10, 10, 10, "Second Number - Bottom"),
+    Button(sWidth, sHeight - 10, 10, 10, "Fifth Number - Bottom"),
+};
+
+char number1 = numbers[9];
+char number2 = numbers[2];
+char number3 = numbers[5];
+char number4 = numbers[0];
+char number5 = numbers[4];
+
 
 ////////////////////////////////////////////////////////////////////
 // Method header declarations
@@ -38,6 +76,7 @@ String httpGETRequest(const char* serverName);
 void drawWeatherImage(String iconId, int resizeMult);
 void fetchWeatherDetails();
 void drawWeatherDisplay();
+void drawZipDisplay();
 
 ///////////////////////////////////////////////////////////////
 // Put your setup code here, to run once
@@ -52,7 +91,7 @@ void setup() {
 
     // TODO 2: Connect to WiFi
     WiFi.begin(wifiNetworkName.c_str(), wifiPassword.c_str());
-    Serial.printf("Connecting");
+    Serial.printf("Connecting to %s", wifiNetworkName.c_str());
     while (WiFi.status() != WL_CONNECTED) {
         delay(500);
         Serial.print(".");
@@ -66,13 +105,27 @@ void setup() {
 ///////////////////////////////////////////////////////////////
 void loop() {
 
+    Serial.print("Finally finished connecting");
+
+    if (M5.BtnB.wasPressed()) {
+        if (screen == S_WEATHER) {
+            screen = S_ZIP_EDIT;
+        } else {
+            screen = S_WEATHER;
+        }
+        lastTime = millis();
+    }
+
     // Only execute every so often
     if ((millis() - lastTime) > timerDelay) {
         if (WiFi.status() == WL_CONNECTED) {
-
-            fetchWeatherDetails();
-            drawWeatherDisplay();
-            
+            if (screen == S_WEATHER) {
+                fetchWeatherDetails();
+                drawWeatherDisplay();
+            } else {
+                //TODO: Draw Zip Display
+                drawZipDisplay();
+            } 
         } else {
             Serial.println("WiFi Disconnected");
         }
@@ -84,15 +137,45 @@ void loop() {
 
 
 /////////////////////////////////////////////////////////////////
+// Update the display based on the zip variables defined
+// at the top of the screen.
+/////////////////////////////////////////////////////////////////
+void drawZipDisplay() {
+    //////////////////////////////////////////////////////////////////
+    // Draw background - neutral tones
+    //////////////////////////////////////////////////////////////////
+    uint16_t primaryTextColor = TFT_BLACK;
+    M5.Lcd.fillScreen(TFT_OLIVE);
+
+    //////////////////////////////////////////////////////////////////
+    // Draw the title
+    //////////////////////////////////////////////////////////////////
+    int pad = 10;
+    M5.Lcd.setCursor(pad, pad);
+    M5.Lcd.setTextColor(primaryTextColor);
+    M5.Lcd.print('Enter Your Zipcodee');
+
+    //////////////////////////////////////////////////////////////////
+    // Draw the Zip Boxes
+    //////////////////////////////////////////////////////////////////
+    
+    //TODO: Draw a row of buttons
+    
+    //TODO: Draw the zip numbers
+
+    //TODO: Draw the row of buttons
+}
+
+/////////////////////////////////////////////////////////////////
 // This method fetches the weather details from the OpenWeather
 // API and saves them into the fields defined above
 /////////////////////////////////////////////////////////////////
 void fetchWeatherDetails() {
     //////////////////////////////////////////////////////////////////
     // Hardcode the specific city,state,country into the query
-    // Examples: https://api.openweathermap.org/data/2.5/weather?q=riverside,ca,usa&units=imperial&appid=YOUR_API_KEY
+    // Examples: https://api.openweathermap.org/data/2.5/weather?zip=92504,usa&units=imperial&appid=YOUR_API_KEY
     //////////////////////////////////////////////////////////////////
-    String serverURL = urlOpenWeather + "q=des+moines,ia,usa&units=imperial&appid=" + apiKey;
+    String serverURL = urlOpenWeather + "zip=92504,usa&units=imperial&appid=" + apiKey;
     //Serial.println(serverURL); // Debug print
 
     //////////////////////////////////////////////////////////////////
