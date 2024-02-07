@@ -9,6 +9,9 @@
 ////////////////////////////////////////////////////////////////////
 
 enum Screen { S_WEATHER, S_ZIP_EDIT };
+enum Temp { T_Fahrenheit, T_Celsius };
+static bool stateChangedThisLoop = false;
+static bool zipChangedThisLoop = false;
 
 
 ////////////////////////////////////////////////////////////////////
@@ -34,33 +37,44 @@ int sFifthWidth = sWidth / 5;
 // Weather/zip variables
 String strWeatherIcon;
 String strWeatherDesc;
-String zipCode = "92504";
+//String zipCode = "92504";
 String cityName;
 double tempNow;
+double tempNowC;
 double tempMin;
+double tempMinC; 
 double tempMax;
+double tempMaxC;
+
+
 
 // Screen Variables
 static Screen screen = S_WEATHER;
+static Temp tempState = T_Fahrenheit;
+
+//#region Buttons
+ButtonColors onCol = {BLACK, WHITE, WHITE};
+ButtonColors offCol = {TFT_CYAN, BLACK, NODRAW};
 
 //ZipCode Variables of an array consisting of the different numbers
 char numbers [10] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'};
 // array for top row of buttons to change zip code
-Button N1U(5, 5, 5, 5, "Number 1 Up");
-Button N2U(15, 5, 5, 5, "Number 2 Up");
-Button N3U(30, 5, 5, 5, "Number 3 Up");
-Button N4U(45, 5, 5, 5, "Number 4 Up");
-Button N5U(60, 5, 5, 5, "Number 5 Up");
-Button topButtons [5] = {N1U, N2U, N3U, N4U, N5U};
+Button N1U(15, 45, 50, 50, false, "^", offCol, onCol);
+Button N2U(75, 45, 50, 50, false, "^", offCol, onCol);
+Button N3U(135, 45, 50, 50, false, "^", offCol, onCol);
+Button N4U(195, 45, 50, 50, false, "^", offCol, onCol);
+Button N5U(255, 45, 50, 50, false, "^", offCol, onCol);
+
+Button topButtons [5] = { N1U, N2U, N3U, N4U, N5U };
 // array for bottom row of buttons to change zip code
-Button N1D(5, sHeight - 10, 10, 10, "First Number - Bottom");
-Button bottomButtons [5] = {
-    Button(sWidth - sFifthWidth*4, sHeight - 10, 10, 10, "First Number - Bottom"),
-    Button(sWidth - sFifthWidth*3, sHeight - 10, 10, 10, "Second Number - Bottom"),
-    Button(sWidth - sFifthWidth*2, sHeight - 10, 10, 10, "Second Number - Bottom"),
-    Button(sWidth - sFifthWidth*1, sHeight - 10, 10, 10, "Second Number - Bottom"),
-    Button(sWidth, sHeight - 10, 10, 10, "Fifth Number - Bottom"),
-};
+//Button N1D(5, sHeight - 10, 10, 10, "First Number - Bottom");
+Button N1D(15, 175, 50, 50, false, "v", offCol, onCol);
+Button N2D(75, 175, 50, 50, false, "v", offCol, onCol);
+Button N3D(135, 175, 50, 50, false, "v", offCol, onCol);
+Button N4D(195, 175, 50, 50, false, "v", offCol, onCol);
+Button N5D(255, 175, 50, 50, false, "v", offCol, onCol);
+
+Button bottomButtons [5] = { N1D, N2D, N3D, N4D, N5D };
 
 char number1 = numbers[9];
 char number2 = numbers[2];
@@ -70,6 +84,7 @@ char number5 = numbers[4];
 
 //zipCode = number1 + number2 + number3 + number4 + number5;
 
+String zipCode = (String)number1 + (String)number2 + (String)number3 + (String)number4 + (String)number5;
 
 ////////////////////////////////////////////////////////////////////
 // Method header declarations
@@ -79,6 +94,16 @@ void drawWeatherImage(String iconId, int resizeMult);
 void fetchWeatherDetails();
 void drawWeatherDisplay();
 void drawZipDisplay();
+void down1Pressed(Event& e);
+void down2Pressed(Event& e);
+void down3Pressed(Event& e);
+void down4Pressed(Event& e);
+void down5Pressed(Event& e);
+void up1Pressed(Event& e);
+void up2Pressed(Event& e);
+void up3Pressed(Event& e);
+void up4Pressed(Event& e);
+void up5Pressed(Event& e);
 
 ///////////////////////////////////////////////////////////////
 // Put your setup code here, to run once
@@ -86,6 +111,19 @@ void drawZipDisplay();
 void setup() {
     // Initialize the device
     M5.begin();
+    M5.Buttons.setFont(FSS18);
+    
+    N1U.addHandler(up1Pressed, E_PRESSED);
+    N2U.addHandler(up2Pressed, E_PRESSED);
+    N3U.addHandler(up3Pressed, E_PRESSED);
+    N4U.addHandler(up4Pressed, E_PRESSED);
+    N5U.addHandler(up5Pressed, E_PRESSED);
+
+    N1D.addHandler(down1Pressed, E_PRESSED);
+    N2D.addHandler(down2Pressed, E_PRESSED);
+    N3D.addHandler(down3Pressed, E_PRESSED);
+    N4D.addHandler(down4Pressed, E_PRESSED);
+    N5D.addHandler(down5Pressed, E_PRESSED);
     
     // Set screen orientation and get height/width 
     sWidth = M5.Lcd.width();
@@ -102,16 +140,143 @@ void setup() {
     Serial.println(WiFi.localIP());
 }
 
+//pressed down buttons
+void down1Pressed(Event& e) {
+    int idx = number1 - '0';
+    if (idx == 0) {
+        number1 = numbers[9];
+    } else {
+        number1 = numbers[idx - 1];
+    }
+    zipCode = (String)number1 + (String)number2 + (String)number3 + (String)number4 + (String)number5;
+    zipChangedThisLoop = true;
+}
+
+void down2Pressed(Event& e) {
+    int idx = number2 - '0';
+    if (idx == 0) {
+        number2 = numbers[9];
+    } else {
+        number2 = numbers[idx - 1];
+    }
+    zipCode = (String)number1 + (String)number2 + (String)number3 + (String)number4 + (String)number5;
+    zipChangedThisLoop = true;
+}
+
+void down3Pressed(Event& e) {
+    int idx = number3 - '0';
+    if (idx == 0) {
+        number3 = numbers[9];
+    } else {
+        number3 = numbers[idx - 1];
+    }
+    zipCode = (String)number1 + (String)number2 + (String)number3 + (String)number4 + (String)number5;
+    zipChangedThisLoop = true;
+}
+
+void down4Pressed(Event& e) {
+    int idx = number4 - '0';
+    if (idx == 0) {
+        number4 = numbers[9];
+    } else {
+        number4 = numbers[idx - 1];
+    }
+    zipCode = (String)number1 + (String)number2 + (String)number3 + (String)number4 + (String)number5;
+    zipChangedThisLoop = true;
+}
+
+void down5Pressed(Event& e) {
+    int idx = number5 - '0';
+    if (idx == 0) {
+        number5 = numbers[9];
+    } else {
+        number5 = numbers[idx - 1];
+    }
+    zipCode = (String)number1 + (String)number2 + (String)number3 + (String)number4 + (String)number5;
+    zipChangedThisLoop = true;
+}
+
+//pressed up buttons
+void up1Pressed(Event& e) {
+    int idx = number1 - '0';
+    if (idx == 9) {
+        number1 = numbers[0];
+    } else {
+        number1 = numbers[idx + 1];
+    }
+    zipCode = (String)number1 + (String)number2 + (String)number3 + (String)number4 + (String)number5;
+    zipChangedThisLoop = true;
+}
+
+void up2Pressed(Event& e) {
+    int idx = number2 - '0';
+    if (idx == 9) {
+        number2 = numbers[0];
+    } else {
+        number2 = numbers[idx + 1];
+    }
+    zipCode = (String)number1 + (String)number2 + (String)number3 + (String)number4 + (String)number5;
+    zipChangedThisLoop = true;
+}
+
+void up3Pressed(Event& e) {
+    int idx = number3 - '0';
+    if (idx == 9) {
+        number3 = numbers[0];
+    } else {
+        number3 = numbers[idx + 1];
+    }
+    zipCode = (String)number1 + (String)number2 + (String)number3 + (String)number4 + (String)number5;
+    zipChangedThisLoop = true;
+}
+
+void up4Pressed(Event& e) {
+    int idx = number4 - '0';
+    if (idx == 9) {
+        number4 = numbers[0];
+    } else {
+        number4 = numbers[idx + 1];
+    }
+    zipCode = (String)number1 + (String)number2 + (String)number3 + (String)number4 + (String)number5;
+    zipChangedThisLoop = true;
+}
+
+
+void up5Pressed(Event& e) {
+    int idx = number5 - '0';
+    if (idx == 9) {
+        number5 = numbers[0];
+    } else {
+        number5 = numbers[idx + 1];
+    }
+    zipCode = (String)number1 + (String)number2 + (String)number3 + (String)number4 + (String)number5;
+    zipChangedThisLoop = true;
+}
+//#endregion
 ///////////////////////////////////////////////////////////////
 // Put your main code here, to run repeatedly
 ///////////////////////////////////////////////////////////////
 void loop() {
+    // Update states
+    M5.update();
+
     if (M5.BtnB.wasPressed()) {
         if (screen == S_WEATHER) {
             screen = S_ZIP_EDIT;
         } else {
             screen = S_WEATHER;
         }
+        stateChangedThisLoop = true;
+        lastTime = millis();
+    }
+
+    if(M5.BtnA.wasPressed()) {
+        if (tempState == T_Fahrenheit) {
+            tempState = T_Celsius;
+        } else {
+            tempState = T_Fahrenheit;
+        }
+        stateChangedThisLoop = true;
         lastTime = millis();
     }
 
@@ -121,17 +286,30 @@ void loop() {
             if (screen == S_WEATHER) {
                 fetchWeatherDetails();
                 drawWeatherDisplay();
-            } else {
-                //TODO: Draw Zip Display
-                drawZipDisplay();
             } 
         } else {
             Serial.println("WiFi Disconnected");
         }
-
         // Update the last time to NOW
         lastTime = millis();
     }
+    
+    if (stateChangedThisLoop) {
+        if (screen == S_WEATHER) {
+            fetchWeatherDetails();
+            drawWeatherDisplay();
+        } else {
+            //TODO: Draw Zip Display
+            drawZipDisplay();
+        } 
+    }
+
+    if (zipChangedThisLoop && screen == S_ZIP_EDIT) {
+        drawZipDisplay();
+    }
+
+    zipChangedThisLoop = false;
+    stateChangedThisLoop = false;
 }
 
 
@@ -144,7 +322,7 @@ void drawZipDisplay() {
     // Draw background - neutral tones
     //////////////////////////////////////////////////////////////////
     uint16_t primaryTextColor = TFT_BLACK;
-    M5.Lcd.fillScreen(TFT_OLIVE);
+    M5.Lcd.fillScreen(TFT_LIGHTGREY);
 
     //////////////////////////////////////////////////////////////////
     // Draw the title
@@ -152,17 +330,27 @@ void drawZipDisplay() {
     int pad = 10;
     M5.Lcd.setCursor(pad, pad);
     M5.Lcd.setTextColor(primaryTextColor);
-    M5.Lcd.print('Enter Your Zipcodee');
+    M5.Lcd.setTextSize(3);
+    M5.Lcd.println("Enter Your Zipcode");
 
     //////////////////////////////////////////////////////////////////
     // Draw the Zip Boxes
     //////////////////////////////////////////////////////////////////
     
-    //TODO: Draw a row of buttons
+    //Draw Buttons
+    M5.Buttons.draw();
     
     //TODO: Draw the zip numbers
 
-    //TODO: Draw the row of buttons
+    // Draw boxes for zip numbers
+    for (int i = 0; i < zipCode.length(); i++) {
+        String zipNum = zipCode.substring(i, i+1);
+        M5.Lcd.drawRect(15 + (60 * i), 105, 50, 50, TFT_BLACK);
+        M5.Lcd.setCursor(25 + (60 * i), 150);
+        M5.Lcd.print(zipNum);
+    }
+
+    //TODO: handle changing zip number
 }
 
 /////////////////////////////////////////////////////////////////
@@ -220,6 +408,12 @@ void fetchWeatherDetails() {
 
     // Parse response to get the temperatures
     JsonObject objMain = objResponse["main"];
+    /**
+     * tempNowC = getCelsius(objMain["temp"])
+     * tempMinC = getCelsius(objMain["temp_min"])
+     * tempMaxC = getCelsius(objMain["temp_max"])
+     * Serial.printf("NOW: %.1f C and %s\tMIN: %.1f C\tMax: %.1f F\n", tempNowC, strWeatherDesc, tempMinC, tempMaxC)
+     */
     tempNow = objMain["temp"];
     tempMin = objMain["temp_min"];
     tempMax = objMain["temp_max"];
@@ -255,24 +449,42 @@ void drawWeatherDisplay() {
     // Draw the temperatures and city name
     //////////////////////////////////////////////////////////////////
     int pad = 10;
-    M5.Lcd.setCursor(pad, pad);
+    M5.Lcd.setCursor(pad, pad + 10);
     M5.Lcd.setTextColor(TFT_BLUE);
     M5.Lcd.setTextSize(3);
-    M5.Lcd.printf("LO:%0.fF\n", tempMin);
-    
-    M5.Lcd.setCursor(pad, M5.Lcd.getCursorY());
+
+    if (tempState == T_Celsius) {
+        tempMin = ((tempMin - 32.0) * 5.0)/9.0;
+        M5.Lcd.printf("LO:%0.fC\n", tempMin);
+    } else {
+        M5.Lcd.printf("LO:%0.fF\n", tempMin);
+    }
+
+    M5.Lcd.setCursor(pad, M5.Lcd.getCursorY() + 30);
     M5.Lcd.setTextColor(primaryTextColor);
     M5.Lcd.setTextSize(10);
-    M5.Lcd.printf("%0.fF\n", tempNow);
 
-    M5.Lcd.setCursor(pad, M5.Lcd.getCursorY());
+    if (tempState == T_Celsius) {
+        tempNow = ((tempNow - 32.0) * 5.0)/9.0;
+        M5.Lcd.printf("%0.fC\n", tempNow);
+    } else {
+        M5.Lcd.printf("%0.fF\n", tempNow);
+    }
+
+    M5.Lcd.setCursor(pad, M5.Lcd.getCursorY() - 30);
     M5.Lcd.setTextColor(TFT_RED);
     M5.Lcd.setTextSize(3);
-    M5.Lcd.printf("HI:%0.fF\n", tempMax);
+    if (tempState == T_Celsius) {
+        tempMax = ((tempMax - 32.0) * 5.0)/9.0;
+        M5.Lcd.printf("HI:%0.fC\n", tempMax);
+    } else {
+        M5.Lcd.printf("HI:%0.fF\n", tempMax);
+    }
 
     M5.Lcd.setCursor(pad, M5.Lcd.getCursorY());
     M5.Lcd.setTextColor(primaryTextColor);
     M5.Lcd.printf("%s\n", cityName.c_str());
+    Serial.print(cityName);
 }
 
 /////////////////////////////////////////////////////////////////
