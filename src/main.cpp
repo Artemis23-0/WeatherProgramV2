@@ -535,8 +535,12 @@ void drawWeatherDisplay() {
     Serial.print(cityName);
 
     M5.Lcd.setTextSize(1); 
-    M5.Lcd.setTextColor(TFT_BLACK);
-    M5.Lcd.drawString(timeOfLastUpdate, sWidth, sHeight);
+    if (strWeatherIcon.indexOf("d") >= 0) {
+        M5.Lcd.setTextColor(TFT_BLACK);
+    } else {
+        M5.Lcd.setTextColor(TFT_WHITE);
+    }
+    M5.Lcd.drawString(timeOfLastUpdate, sWidth / 2, sHeight);
 
     M5.Lcd.setCursor(sWidth / 3, sHeight / 2 + 50);
     M5.Lcd.setTextColor(primaryTextColor);
