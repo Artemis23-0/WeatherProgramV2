@@ -17,11 +17,9 @@ static bool tempChangedThisLoop = false;
 ////////////////////////////////////////////////////////////////////
 // Variables
 ////////////////////////////////////////////////////////////////////
-// TODO 3: Register for openweather account and get API key
 String urlOpenWeather = "https://api.openweathermap.org/data/2.5/weather?";
 String apiKey = "0f4c9cbe9b2dc5d1b4445b61a58f2dd9";
 
-// TODO 1: WiFi variables
 String wifiNetworkName = "CBU-LANCERS";
 String wifiPassword = "LiveY0urPurp0se";
 
@@ -84,8 +82,6 @@ char number3 = numbers[5];
 char number4 = numbers[0];
 char number5 = numbers[4];
 
-//zipCode = number1 + number2 + number3 + number4 + number5;
-
 String zipCode = (String)number1 + (String)number2 + (String)number3 + (String)number4 + (String)number5;
 
 ////////////////////////////////////////////////////////////////////
@@ -96,16 +92,16 @@ void drawWeatherImage(String iconId, int resizeMult);
 void fetchWeatherDetails();
 void drawWeatherDisplay();
 void drawZipDisplay();
-void down1Pressed(Event& e);
-void down2Pressed(Event& e);
-void down3Pressed(Event& e);
-void down4Pressed(Event& e);
-void down5Pressed(Event& e);
-void up1Pressed(Event& e);
-void up2Pressed(Event& e);
-void up3Pressed(Event& e);
-void up4Pressed(Event& e);
-void up5Pressed(Event& e);
+void down1Tapped(Event& e);
+void down2Tapped(Event& e);
+void down3Tapped(Event& e);
+void down4Tapped(Event& e);
+void down5Tapped(Event& e);
+void up1Tapped(Event& e);
+void up2Tapped(Event& e);
+void up3Tapped(Event& e);
+void up4Tapped(Event& e);
+void up5Tapped(Event& e);
 void hideButtons();
 String epoch_to_timestamp(long epoch); 
 
@@ -115,25 +111,27 @@ String epoch_to_timestamp(long epoch);
 void setup() {
     // Initialize the device
     M5.begin();
+
+    // Buttons
     M5.Buttons.setFont(FSS18);
     
-    N1U.addHandler(up1Pressed, E_TAP);
-    N2U.addHandler(up2Pressed, E_TAP);
-    N3U.addHandler(up3Pressed, E_TAP);
-    N4U.addHandler(up4Pressed, E_TAP);
-    N5U.addHandler(up5Pressed, E_TAP);
+    N1U.addHandler(up1Tapped, E_TAP);
+    N2U.addHandler(up2Tapped, E_TAP);
+    N3U.addHandler(up3Tapped, E_TAP);
+    N4U.addHandler(up4Tapped, E_TAP);
+    N5U.addHandler(up5Tapped, E_TAP);
 
-    N1D.addHandler(down1Pressed, E_TAP);
-    N2D.addHandler(down2Pressed, E_TAP);
-    N3D.addHandler(down3Pressed, E_TAP);
-    N4D.addHandler(down4Pressed, E_TAP);
-    N5D.addHandler(down5Pressed, E_TAP);
+    N1D.addHandler(down1Tapped, E_TAP);
+    N2D.addHandler(down2Tapped, E_TAP);
+    N3D.addHandler(down3Tapped, E_TAP);
+    N4D.addHandler(down4Tapped, E_TAP);
+    N5D.addHandler(down5Tapped, E_TAP);
     
     // Set screen orientation and get height/width 
     sWidth = M5.Lcd.width();
     sHeight = M5.Lcd.height();
 
-    // TODO 2: Connect to WiFi
+    // Connect to WiFi
     WiFi.begin(wifiNetworkName.c_str(), wifiPassword.c_str());
     Serial.printf("Connecting to %s", wifiNetworkName.c_str());
     while (WiFi.status() != WL_CONNECTED) {
@@ -146,118 +144,7 @@ void setup() {
 }
 
 //pressed down buttons
-void down1Pressed(Event& e) {
-    int idx = number1 - '0';
-    if (idx == 0) {
-        number1 = numbers[9];
-    } else {
-        number1 = numbers[idx - 1];
-    }
-    zipCode = (String)number1 + (String)number2 + (String)number3 + (String)number4 + (String)number5;
-    zipChangedThisLoop = true;
-}
 
-void down2Pressed(Event& e) {
-    int idx = number2 - '0';
-    if (idx == 0) {
-        number2 = numbers[9];
-    } else {
-        number2 = numbers[idx - 1];
-    }
-    zipCode = (String)number1 + (String)number2 + (String)number3 + (String)number4 + (String)number5;
-    zipChangedThisLoop = true;
-}
-
-void down3Pressed(Event& e) {
-    int idx = number3 - '0';
-    if (idx == 0) {
-        number3 = numbers[9];
-    } else {
-        number3 = numbers[idx - 1];
-    }
-    zipCode = (String)number1 + (String)number2 + (String)number3 + (String)number4 + (String)number5;
-    zipChangedThisLoop = true;
-}
-
-void down4Pressed(Event& e) {
-    int idx = number4 - '0';
-    if (idx == 0) {
-        number4 = numbers[9];
-    } else {
-        number4 = numbers[idx - 1];
-    }
-    zipCode = (String)number1 + (String)number2 + (String)number3 + (String)number4 + (String)number5;
-    zipChangedThisLoop = true;
-}
-
-void down5Pressed(Event& e) {
-    int idx = number5 - '0';
-    if (idx == 0) {
-        number5 = numbers[9];
-    } else {
-        number5 = numbers[idx - 1];
-    }
-    zipCode = (String)number1 + (String)number2 + (String)number3 + (String)number4 + (String)number5;
-    zipChangedThisLoop = true;
-}
-
-//pressed up buttons
-void up1Pressed(Event& e) {
-    int idx = number1 - '0';
-    if (idx == 9) {
-        number1 = numbers[0];
-    } else {
-        number1 = numbers[idx + 1];
-    }
-    zipCode = (String)number1 + (String)number2 + (String)number3 + (String)number4 + (String)number5;
-    zipChangedThisLoop = true;
-}
-
-void up2Pressed(Event& e) {
-    int idx = number2 - '0';
-    if (idx == 9) {
-        number2 = numbers[0];
-    } else {
-        number2 = numbers[idx + 1];
-    }
-    zipCode = (String)number1 + (String)number2 + (String)number3 + (String)number4 + (String)number5;
-    zipChangedThisLoop = true;
-}
-
-void up3Pressed(Event& e) {
-    int idx = number3 - '0';
-    if (idx == 9) {
-        number3 = numbers[0];
-    } else {
-        number3 = numbers[idx + 1];
-    }
-    zipCode = (String)number1 + (String)number2 + (String)number3 + (String)number4 + (String)number5;
-    zipChangedThisLoop = true;
-}
-
-void up4Pressed(Event& e) {
-    int idx = number4 - '0';
-    if (idx == 9) {
-        number4 = numbers[0];
-    } else {
-        number4 = numbers[idx + 1];
-    }
-    zipCode = (String)number1 + (String)number2 + (String)number3 + (String)number4 + (String)number5;
-    zipChangedThisLoop = true;
-}
-
-
-void up5Pressed(Event& e) {
-    int idx = number5 - '0';
-    if (idx == 9) {
-        number5 = numbers[0];
-    } else {
-        number5 = numbers[idx + 1];
-    }
-    zipCode = (String)number1 + (String)number2 + (String)number3 + (String)number4 + (String)number5;
-    zipChangedThisLoop = true;
-}
-//#endregion
 ///////////////////////////////////////////////////////////////
 // Put your main code here, to run repeatedly
 ///////////////////////////////////////////////////////////////
@@ -266,6 +153,7 @@ void loop() {
     M5.update();
     timeClient.update();
 
+    // Handling switching between screens
     if (M5.BtnB.wasPressed()) {
         if (screen == S_WEATHER) {
             screen = S_ZIP_EDIT;
@@ -276,6 +164,7 @@ void loop() {
         lastTime = millis();
     }
 
+    // Handling Temperature
     if(M5.BtnA.wasPressed()) {
         if (tempState == T_Fahrenheit) {
             tempState = T_Celsius;
@@ -300,6 +189,7 @@ void loop() {
         lastTime = millis();
     }
     
+    // Changing to and from screens
     if (stateChangedThisLoop) {
         if (screen == S_WEATHER) {
             fetchWeatherDetails();
@@ -309,53 +199,21 @@ void loop() {
         } 
     }
 
+    // Redrawing zip screen with each button tap
     if (zipChangedThisLoop && screen == S_ZIP_EDIT) {
         drawZipDisplay();
     }
 
+    // Redrawing weather screen to handle temp conversions
     if (tempChangedThisLoop && screen == S_WEATHER) {
         drawWeatherDisplay();
     }
 
+    // Resetting state variables
+
     tempChangedThisLoop = false;
     zipChangedThisLoop = false;
     stateChangedThisLoop = false;
-}
-
-String epoch_to_timestamp(long epoch) {
-    unsigned long hours = (epoch % 86400L) / 3600;
-    bool isPM = false;
-    if (hours >= 12) {
-        hours -= 12;
-        isPM = true;
-    }
-    if (hours == 0) {
-        hours = 12;
-    }
-    String hoursStr = hours < 10 ? "0" + String(hours) : String(hours);
-    unsigned long minutes = (epoch % 3600) / 60;
-    String minuteStr = minutes < 10 ? "0" + String(minutes) : String(minutes);
-
-    unsigned long seconds = epoch % 60;
-    String secondStr = seconds < 10 ? "0" + String(seconds) : String(seconds);
-    String amPmStr = isPM ? "PM" : "AM";
-
-    return hoursStr + ":" + minuteStr + ":" + secondStr + " " + amPmStr;
-}
-
-void hideButtons() {
-    N1U.hide(); 
-    N2U.hide();
-    N3U.hide(); 
-    N4U.hide();
-    N5U.hide(); 
-    
-    N1D.hide();
-    N2D.hide(); 
-    N3D.hide();
-    N4D.hide(); 
-    N5D.hide();
-    M5.Lcd.fillScreen(TFT_BLACK);
 }
 
 /////////////////////////////////////////////////////////////////
@@ -385,8 +243,6 @@ void drawZipDisplay() {
     
     //Draw Buttons
     M5.Buttons.draw();
-    
-    //TODO: Draw the zip numbers
 
     // Draw boxes for zip numbers
     for (int i = 0; i < zipCode.length(); i++) {
@@ -395,8 +251,6 @@ void drawZipDisplay() {
         M5.Lcd.setCursor(25 + (60 * i), 150);
         M5.Lcd.print(zipNum);
     }
-
-    //TODO: handle changing zip number
 }
 
 /////////////////////////////////////////////////////////////////
@@ -409,15 +263,12 @@ void fetchWeatherDetails() {
     // Examples: https://api.openweathermap.org/data/2.5/weather?zip=92504,usa&units=imperial&appid=YOUR_API_KEY
     //////////////////////////////////////////////////////////////////
     //String serverURL = urlOpenWeather + "q=sacramento,ca,usa&units=imperial&appid=" + apiKey;
-    String serverURL = urlOpenWeather + "zip=" + zipCode + ",us&units=imperial&appid=" + apiKey;
-    //Serial.println(serverURL); // Debug print
-    
+    String serverURL = urlOpenWeather + "zip=" + zipCode + ",us&units=imperial&appid=" + apiKey;    
 
     //////////////////////////////////////////////////////////////////
     // Make GET request and store reponse
     //////////////////////////////////////////////////////////////////
     String response = httpGETRequest(serverURL.c_str());
-    //Serial.print(response); // Debug print
     
     //////////////////////////////////////////////////////////////////
     // Import ArduinoJSON Library and then use arduinojson.org/v6/assistant to
@@ -472,7 +323,6 @@ void drawWeatherDisplay() {
     // Draw background - light blue if day time and navy blue of night
     //////////////////////////////////////////////////////////////////
     hideButtons();
-    Serial.print("after hide buttons");
     uint16_t primaryTextColor;
     if (strWeatherIcon.indexOf("d") >= 0) {
         M5.Lcd.fillScreen(TFT_CYAN);
@@ -532,7 +382,6 @@ void drawWeatherDisplay() {
     }
     M5.Lcd.setTextColor(primaryTextColor);
     M5.Lcd.drawString(cityName.c_str(), sWidth / 2, M5.Lcd.getCursorY() - 30);
-    Serial.print(cityName);
 
     M5.Lcd.setTextSize(1); 
     if (strWeatherIcon.indexOf("d") >= 0) {
@@ -540,6 +389,8 @@ void drawWeatherDisplay() {
     } else {
         M5.Lcd.setTextColor(TFT_WHITE);
     }
+
+    // Handles the drawing of the timestamp
     M5.Lcd.drawString(timeOfLastUpdate, sWidth / 2, sHeight);
 
     M5.Lcd.setCursor(sWidth / 3, sHeight / 2 + 50);
@@ -625,8 +476,164 @@ void drawWeatherImage(String iconId, int resizeMult) {
         }
     }
 }
-//////////////////////////////////////////////////////////////////////////////////
-// For more documentation see the following links:
-// https://github.com/m5stack/m5-docs/blob/master/docs/en/api/
-// https://docs.m5stack.com/en/api/core2/lcd_api
-//////////////////////////////////////////////////////////////////////////////////
+
+/////////////////////////////////////////////////////////////////
+// This method converts the time from UTC epoch (miliseconds)
+// to local time in a readable way
+/////////////////////////////////////////////////////////////////
+
+String epoch_to_timestamp(long epoch) {
+    unsigned long hours = (epoch % 86400L) / 3600;
+    bool isPM = false;
+    if (hours >= 12) {
+        hours -= 12;
+        isPM = true;
+    }
+    if (hours == 0) {
+        hours = 12;
+    }
+    String hoursStr = hours < 10 ? "0" + String(hours) : String(hours);
+    unsigned long minutes = (epoch % 3600) / 60;
+    String minuteStr = minutes < 10 ? "0" + String(minutes) : String(minutes);
+
+    unsigned long seconds = epoch % 60;
+    String secondStr = seconds < 10 ? "0" + String(seconds) : String(seconds);
+    String amPmStr = isPM ? "PM" : "AM";
+
+    return hoursStr + ":" + minuteStr + ":" + secondStr + " " + amPmStr;
+}
+
+/////////////////////////////////////////////////////////////////
+// Hides each button
+/////////////////////////////////////////////////////////////////
+void hideButtons() {
+    N1U.hide(); 
+    N2U.hide();
+    N3U.hide(); 
+    N4U.hide();
+    N5U.hide(); 
+    
+    N1D.hide();
+    N2D.hide(); 
+    N3D.hide();
+    N4D.hide(); 
+    N5D.hide();
+    M5.Lcd.fillScreen(TFT_BLACK);
+}
+
+////////////////////////////////////////////////////////////////////
+// Button Listeners
+////////////////////////////////////////////////////////////////////
+
+// "Down" or "Decrement" buttons tapped
+void down1Tapped(Event& e) {
+    int idx = number1 - '0';
+    if (idx == 0) {
+        number1 = numbers[9];
+    } else {
+        number1 = numbers[idx - 1];
+    }
+    zipCode = (String)number1 + (String)number2 + (String)number3 + (String)number4 + (String)number5;
+    zipChangedThisLoop = true;
+}
+
+void down2Tapped(Event& e) {
+    int idx = number2 - '0';
+    if (idx == 0) {
+        number2 = numbers[9];
+    } else {
+        number2 = numbers[idx - 1];
+    }
+    zipCode = (String)number1 + (String)number2 + (String)number3 + (String)number4 + (String)number5;
+    zipChangedThisLoop = true;
+}
+
+void down3Tapped(Event& e) {
+    int idx = number3 - '0';
+    if (idx == 0) {
+        number3 = numbers[9];
+    } else {
+        number3 = numbers[idx - 1];
+    }
+    zipCode = (String)number1 + (String)number2 + (String)number3 + (String)number4 + (String)number5;
+    zipChangedThisLoop = true;
+}
+
+void down4Tapped(Event& e) {
+    int idx = number4 - '0';
+    if (idx == 0) {
+        number4 = numbers[9];
+    } else {
+        number4 = numbers[idx - 1];
+    }
+    zipCode = (String)number1 + (String)number2 + (String)number3 + (String)number4 + (String)number5;
+    zipChangedThisLoop = true;
+}
+
+void down5Tapped(Event& e) {
+    int idx = number5 - '0';
+    if (idx == 0) {
+        number5 = numbers[9];
+    } else {
+        number5 = numbers[idx - 1];
+    }
+    zipCode = (String)number1 + (String)number2 + (String)number3 + (String)number4 + (String)number5;
+    zipChangedThisLoop = true;
+}
+
+//"Up" or "Increment" buttons tapped
+void up1Tapped(Event& e) {
+    int idx = number1 - '0';
+    if (idx == 9) {
+        number1 = numbers[0];
+    } else {
+        number1 = numbers[idx + 1];
+    }
+    zipCode = (String)number1 + (String)number2 + (String)number3 + (String)number4 + (String)number5;
+    zipChangedThisLoop = true;
+}
+
+void up2Tapped(Event& e) {
+    int idx = number2 - '0';
+    if (idx == 9) {
+        number2 = numbers[0];
+    } else {
+        number2 = numbers[idx + 1];
+    }
+    zipCode = (String)number1 + (String)number2 + (String)number3 + (String)number4 + (String)number5;
+    zipChangedThisLoop = true;
+}
+
+void up3Tapped(Event& e) {
+    int idx = number3 - '0';
+    if (idx == 9) {
+        number3 = numbers[0];
+    } else {
+        number3 = numbers[idx + 1];
+    }
+    zipCode = (String)number1 + (String)number2 + (String)number3 + (String)number4 + (String)number5;
+    zipChangedThisLoop = true;
+}
+
+void up4Tapped(Event& e) {
+    int idx = number4 - '0';
+    if (idx == 9) {
+        number4 = numbers[0];
+    } else {
+        number4 = numbers[idx + 1];
+    }
+    zipCode = (String)number1 + (String)number2 + (String)number3 + (String)number4 + (String)number5;
+    zipChangedThisLoop = true;
+}
+
+
+void up5Tapped(Event& e) {
+    int idx = number5 - '0';
+    if (idx == 9) {
+        number5 = numbers[0];
+    } else {
+        number5 = numbers[idx + 1];
+    }
+    zipCode = (String)number1 + (String)number2 + (String)number3 + (String)number4 + (String)number5;
+    zipChangedThisLoop = true;
+}
