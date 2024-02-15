@@ -51,6 +51,7 @@ String timeOfLastUpdate;
 // Screen Variables
 static Screen screen = S_WEATHER;
 static Temp tempState = T_Fahrenheit;
+static int lightProx = 0;
 
 //#region Buttons
 ButtonColors onCol = {BLACK, WHITE, WHITE};
@@ -83,6 +84,10 @@ char number4 = numbers[0];
 char number5 = numbers[4];
 
 String zipCode = (String)number1 + (String)number2 + (String)number3 + (String)number4 + (String)number5;
+// Variables for Local Readings
+String tempLocal;
+String humidityLocal;
+
 
 ////////////////////////////////////////////////////////////////////
 // Method header declarations
@@ -153,6 +158,10 @@ void loop() {
     // Update states
     M5.update();
     timeClient.update();
+
+    if (lightProx > 300) {
+        M5.Lcd.
+    }
 
     // Handling switching between screens
     if (M5.BtnB.wasPressed()) {
@@ -240,6 +249,7 @@ void drawLocalDisplay(){
     //////////////////////////////////////////////////////////////////
     uint16_t primaryTextColor = TFT_BLACK;
     M5.Lcd.fillScreen(TFT_LIGHTGREY);
+
 }
 
 
