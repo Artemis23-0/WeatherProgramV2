@@ -160,7 +160,8 @@ void loop() {
     timeClient.update();
 
     if (lightProx > 300) {
-        M5.Lcd.
+        // TODO: lightProx is not taking in anything from the VCNL 4040 rn
+        M5.Lcd.setBrightness(lightProx);
     }
 
     // Handling switching between screens
@@ -243,8 +244,10 @@ void loop() {
 // Update the display based on the local temperature and humidity
 // variables defined at the top of the screen.
 /////////////////////////////////////////////////////////////////
-void drawLocalDisplay(){
-    //////////////////////////////////////////////////////////////////
+void drawLocalDisplay()is the Temp{
+;
+    M5.LCD.print("Here is the Humidity")
+    M5.LCD.print("Here ")    //////////////////////////////////////////////////////////////////
     // Draw background - neutral tones
     //////////////////////////////////////////////////////////////////
     uint16_t primaryTextColor = TFT_BLACK;
