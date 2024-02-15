@@ -329,7 +329,7 @@ void drawWeatherDisplay() {
         primaryTextColor = TFT_BLACK;
     } else {
         M5.Lcd.fillScreen(TFT_NAVY);
-        primaryTextColor = TFT_BLACK;
+        primaryTextColor = TFT_WHITE;
     }
     
     //////////////////////////////////////////////////////////////////
