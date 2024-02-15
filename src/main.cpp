@@ -8,7 +8,7 @@
 // State
 ////////////////////////////////////////////////////////////////////
 
-enum Screen { S_WEATHER, S_ZIP_EDIT };
+enum Screen { S_WEATHER, S_ZIP_EDIT, LOCAL};
 enum Temp { T_Fahrenheit, T_Celsius };
 static bool stateChangedThisLoop = false;
 static bool zipChangedThisLoop = false;
@@ -92,6 +92,7 @@ void drawWeatherImage(String iconId, int resizeMult);
 void fetchWeatherDetails();
 void drawWeatherDisplay();
 void drawZipDisplay();
+void drawLocalDisplay();
 void down1Tapped(Event& e);
 void down2Tapped(Event& e);
 void down3Tapped(Event& e);
@@ -164,6 +165,16 @@ void loop() {
         lastTime = millis();
     }
 
+    if(M5.BtnC.wasPressed()){
+        if(screen == LOCAL){
+            screen = S_WEATHER;
+        } else {
+            screen = LOCAL;
+        }
+        stateChangedThisLoop = true;
+        lastTime = millis();
+    }
+
     // Handling Temperature
     if(M5.BtnA.wasPressed()) {
         if (tempState == T_Fahrenheit) {
@@ -194,9 +205,11 @@ void loop() {
         if (screen == S_WEATHER) {
             fetchWeatherDetails();
             drawWeatherDisplay();
-        } else {
+        } else if(screen == S_ZIP_EDIT){
             drawZipDisplay();
-        } 
+        } else if(screen == LOCAL){
+            drawLocalDisplay();
+        }
     }
 
     // Redrawing zip screen with each button tap
@@ -215,6 +228,21 @@ void loop() {
     zipChangedThisLoop = false;
     stateChangedThisLoop = false;
 }
+
+
+/////////////////////////////////////////////////////////////////
+// Update the display based on the local temperature and humidity
+// variables defined at the top of the screen.
+/////////////////////////////////////////////////////////////////
+void drawLocalDisplay(){
+    //////////////////////////////////////////////////////////////////
+    // Draw background - neutral tones
+    //////////////////////////////////////////////////////////////////
+    uint16_t primaryTextColor = TFT_BLACK;
+    M5.Lcd.fillScreen(TFT_LIGHTGREY);
+}
+
+
 
 /////////////////////////////////////////////////////////////////
 // Update the display based on the zip variables defined
