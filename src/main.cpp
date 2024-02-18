@@ -4,6 +4,7 @@
 #include "EGR425_Phase1_weather_bitmap_images.h"
 #include "WiFi.h"
 #include <NTPClient.h>
+#include "../include/VCNL4040.h"
 ////////////////////////////////////////////////////////////////////
 // State
 ////////////////////////////////////////////////////////////////////
@@ -20,8 +21,10 @@ static bool tempChangedThisLoop = false;
 String urlOpenWeather = "https://api.openweathermap.org/data/2.5/weather?";
 String apiKey = "0f4c9cbe9b2dc5d1b4445b61a58f2dd9";
 
-String wifiNetworkName = "CBU-LANCERS";
-String wifiPassword = "LiveY0urPurp0se";
+// String wifiNetworkName = "CBU-LANCERS";
+// String wifiPassword = "LiveY0urPurp0se";
+String wifiNetworkName = "karman";
+String wifiPassword = "112233009988";
 
 // Time variables
 unsigned long lastTime = 0;
@@ -45,7 +48,6 @@ double tempMinC;
 double tempMax;
 double tempMaxC;
 String timeOfLastUpdate;
-
 
 
 // Screen Variables
@@ -88,6 +90,9 @@ String zipCode = (String)number1 + (String)number2 + (String)number3 + (String)n
 String tempLocal;
 String humidityLocal;
 
+// Sensor Variables
+VCNL4040 vcnl;
+
 
 ////////////////////////////////////////////////////////////////////
 // Method header declarations
@@ -117,6 +122,7 @@ String epoch_to_timestamp(long epoch);
 void setup() {
     // Initialize the device
     M5.begin();
+    vcnl.init();
 
     // Buttons
     M5.Buttons.setFont(FSS18);
@@ -244,10 +250,11 @@ void loop() {
 // Update the display based on the local temperature and humidity
 // variables defined at the top of the screen.
 /////////////////////////////////////////////////////////////////
-void drawLocalDisplay()is the Temp{
-;
-    M5.LCD.print("Here is the Humidity")
-    M5.LCD.print("Here ")    //////////////////////////////////////////////////////////////////
+void drawLocalDisplay() {
+    M5.Lcd.print("Here is the Humidity");
+    M5.Lcd.print("Here ");
+    
+    //////////////////////////////////////////////////////////////////
     // Draw background - neutral tones
     //////////////////////////////////////////////////////////////////
     uint16_t primaryTextColor = TFT_BLACK;
