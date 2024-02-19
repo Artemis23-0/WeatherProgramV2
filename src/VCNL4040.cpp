@@ -18,7 +18,7 @@ void VCNL4040::init() {
     Wire.begin(PIN_SDA, PIN_SCL, 400000);
 
     // See if the device is connected
-    while (!connectionFound && tries < 100) {
+    while (!connectionFound && tries < 10) {
         connectionFound = VCNL4040::scanForVCNLConnection(true);
         tries = tries + 1;
     }
@@ -172,4 +172,40 @@ void VCNL4040::printI2cReturnStatus(byte returnStatus, int bytesWritten, const c
             Serial.printf("\t***ERROR (I2C): %d bytes failed %s - unknown error***\n", bytesWritten, action);
             break;
     }
+}
+
+void VCNL4040::scanI2cLinesForAddresses(bool verboseConnectionFailures) {
+    byte error, address;
+    int nDevices;
+    Serial.println("STATUS: Scanning for I2C devices...");
+    nDevices = 0;
+
+    // Scan all possible addresses
+    bool addressesFound[128] = {false};
+    for (address = 0; address < 128; address++) {
+        Wire.beginTransmission(address);
+        error = Wire.endTransmission();
+        if (error == 0) {
+            // Serial.printf("\tSTATUS: I2C device found at address 0x%02X\n", address);
+            addressesFound[address] = true;
+            nDevices++;
+        } else if (verboseConnectionFailures) {
+            char message[20];
+            sprintf(message, "on address 0x%02X", address);
+            // printI2cReturnStatus(error, 0, message);
+        }
+    }
+
+    // Print total devices found
+    if (nDevices == 0) {
+        Serial.println("\tSTATUS: No I2C devices found\n");
+    } else {
+        Serial.print("\tSTATUS: Done scanning for I2C devices. Devices found at following addresses: \n\t\t");
+        for (address = 0; address < 128; address++) {
+            if (addressesFound[address])
+                Serial.printf("0x%02X   ", address);
+        }
+        Serial.println("");
+    }
+    delay(100);
 }

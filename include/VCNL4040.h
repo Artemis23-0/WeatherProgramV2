@@ -43,6 +43,7 @@ class VCNL4040
         static uint16_t readReg8Addr16Data(byte regAddr, int numBytesToRead, String action, bool verbose);
         static void writeReg8Addr16Data(byte regAddr, uint16_t data, String action, bool verbose);
         static bool writeReg8Addr16DataWithProof(byte regAddr, int numBytesToWrite, uint16_t data, String action, bool verbose);
+        static void scanI2cLinesForAddresses(bool verboseConnectionFailures);
 };
 
 #endif

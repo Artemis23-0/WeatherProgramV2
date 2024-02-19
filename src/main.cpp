@@ -5,6 +5,8 @@
 #include "WiFi.h"
 #include <NTPClient.h>
 #include "../include/VCNL4040.h"
+#include "../include/SHT40.h"
+#include <Adafruit_SHT4x.h>
 ////////////////////////////////////////////////////////////////////
 // State
 ////////////////////////////////////////////////////////////////////
@@ -91,7 +93,8 @@ String tempLocal;
 String humidityLocal;
 
 // Sensor Variables
-VCNL4040 vcnl;
+SHT40 sht;
+Adafruit_SHT4x sht4 = Adafruit_SHT4x();
 
 
 ////////////////////////////////////////////////////////////////////
@@ -121,8 +124,15 @@ String epoch_to_timestamp(long epoch);
 ///////////////////////////////////////////////////////////////
 void setup() {
     // Initialize the device
+
+    // Initialize I2C interface
     M5.begin();
-    vcnl.init();
+    sht.init();
+    sht4.begin();
+    if (! sht.init()) {
+        Serial.println("Couldn't find SHT4x");
+        while (1) delay(1);
+    }
 
     // Buttons
     M5.Buttons.setFont(FSS18);
@@ -243,6 +253,17 @@ void loop() {
     tempChangedThisLoop = false;
     zipChangedThisLoop = false;
     stateChangedThisLoop = false;
+
+    Serial.println("Temperature");
+    Serial.println(String(sht.getHumidity()));
+    Serial.println("Temperature");
+    Serial.println(String(sht.getTemperature()));
+      sensors_event_t humidity, temp;
+
+      sht4.getEvent(&humidity, &temp);// populate temp and humidity objects with fresh data
+
+  Serial.print("Temperature: "); Serial.print(temp.temperature); Serial.println(" degrees C");
+    delay(500);
 }
 
 
