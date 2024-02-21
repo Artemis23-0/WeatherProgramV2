@@ -288,8 +288,9 @@ void checkProximity() {
 }
 
 void adjustLcdBrightness() {
-    M5.Lcd.setBrightness((VCNL.getAmbientLight() * 0.20));
-    //M5.Axp.SetLcdVoltage(v); // v from 2500 to 3300
+    //.M5.Lcd.setBrightness((VCNL.getAmbientLight() * 0.20));
+    //M5.Axp.SetLcdVoltage((2500 + ((VCNL.getAmbientLight()+20)*2.5))); // v from 2500 to 3300
+    M5.Axp.SetLcdVoltage(2500 + VCNL.getAmbientLight());
 }
 
 
