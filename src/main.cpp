@@ -11,7 +11,7 @@
 // State
 ////////////////////////////////////////////////////////////////////
 
-enum Screen { S_WEATHER, S_ZIP_EDIT, LOCAL};
+enum Screen { S_WEATHER, S_ZIP_EDIT, S_LOCAL};
 enum Temp { T_Fahrenheit, T_Celsius };
 static bool stateChangedThisLoop = false;
 static bool zipChangedThisLoop = false;
@@ -23,10 +23,10 @@ static bool tempChangedThisLoop = false;
 String urlOpenWeather = "https://api.openweathermap.org/data/2.5/weather?";
 String apiKey = "0f4c9cbe9b2dc5d1b4445b61a58f2dd9";
 
-// String wifiNetworkName = "CBU-LANCERS";
-// String wifiPassword = "LiveY0urPurp0se";
-String wifiNetworkName = "karman";
-String wifiPassword = "112233009988";
+String wifiNetworkName = "CBU-LANCERS";
+String wifiPassword = "LiveY0urPurp0se";
+// String wifiNetworkName = "karman";
+// String wifiPassword = "112233009988";
 
 // Time variables
 unsigned long lastTime = 0;
@@ -89,13 +89,12 @@ char number5 = numbers[4];
 
 String zipCode = (String)number1 + (String)number2 + (String)number3 + (String)number4 + (String)number5;
 // Variables for Local Readings
-String tempLocal;
-String humidityLocal;
+double tempLocal;
+double humidityLocal;
 
 // Sensor Variables
 SHT40 sht;
-Adafruit_SHT4x sht4 = Adafruit_SHT4x();
-
+VCNL4040 VCNL;
 
 ////////////////////////////////////////////////////////////////////
 // Method header declarations
@@ -118,6 +117,8 @@ void up4Tapped(Event& e);
 void up5Tapped(Event& e);
 void hideButtons();
 String epoch_to_timestamp(long epoch); 
+void checkProximity();
+void adjustLcdBrightness();
 
 ///////////////////////////////////////////////////////////////
 // Put your setup code here, to run once
@@ -128,11 +129,11 @@ void setup() {
     // Initialize I2C interface
     M5.begin();
     sht.init();
-    sht4.begin();
     if (! sht.init()) {
         Serial.println("Couldn't find SHT4x");
         while (1) delay(1);
     }
+    VCNL.init();
 
     // Buttons
     M5.Buttons.setFont(FSS18);
@@ -163,6 +164,9 @@ void setup() {
     Serial.print("\n\nConnected to WiFi network with IP address: ");
     Serial.println(WiFi.localIP());
     timeClient.begin();
+
+    tempLocal = (sht.getTemperature() * 9 / 5) + 32;
+    humidityLocal = sht.getHumidity();
 }
 
 //pressed down buttons
@@ -174,11 +178,6 @@ void loop() {
     // Update states
     M5.update();
     timeClient.update();
-
-    if (lightProx > 300) {
-        // TODO: lightProx is not taking in anything from the VCNL 4040 rn
-        M5.Lcd.setBrightness(lightProx);
-    }
 
     // Handling switching between screens
     if (M5.BtnB.wasPressed()) {
@@ -192,10 +191,10 @@ void loop() {
     }
 
     if(M5.BtnC.wasPressed()){
-        if(screen == LOCAL){
+        if(screen == S_LOCAL){
             screen = S_WEATHER;
         } else {
-            screen = LOCAL;
+            screen = S_LOCAL;
         }
         stateChangedThisLoop = true;
         lastTime = millis();
@@ -218,7 +217,12 @@ void loop() {
             if (screen == S_WEATHER) {
                 fetchWeatherDetails();
                 drawWeatherDisplay();
-            } 
+            }
+            if (screen == S_LOCAL) {
+                tempLocal = (sht.getTemperature() * 9 / 5) + 32;
+                humidityLocal = sht.getHumidity();
+                drawLocalDisplay();
+            }
         } else {
             Serial.println("WiFi Disconnected");
         }
@@ -233,7 +237,7 @@ void loop() {
             drawWeatherDisplay();
         } else if(screen == S_ZIP_EDIT){
             drawZipDisplay();
-        } else if(screen == LOCAL){
+        } else if(screen == S_LOCAL) {
             drawLocalDisplay();
         }
     }
@@ -246,24 +250,45 @@ void loop() {
     // Redrawing weather screen to handle temp conversions
     if (tempChangedThisLoop && screen == S_WEATHER) {
         drawWeatherDisplay();
+    } 
+    
+    if (tempChangedThisLoop && screen == S_LOCAL) {
+        drawLocalDisplay();
     }
 
-    // Resetting state variables
+    checkProximity();
+    adjustLcdBrightness();
 
+    // Resetting state variables
     tempChangedThisLoop = false;
     zipChangedThisLoop = false;
     stateChangedThisLoop = false;
 
-    Serial.println("Temperature");
-    Serial.println(String(sht.getHumidity()));
-    Serial.println("Temperature");
-    Serial.println(String(sht.getTemperature()));
-      sensors_event_t humidity, temp;
 
-      sht4.getEvent(&humidity, &temp);// populate temp and humidity objects with fresh data
+    Serial.print("Temperature: "); 
+    Serial.print(tempLocal); Serial.println(" C");
+    Serial.print("Humidity: ");
+    Serial.print(humidityLocal); Serial.println(" %");
+    Serial.print("Proximity: ");
+    Serial.println(VCNL.getProximity());
+    Serial.print("Ambient Light: ");
+    Serial.println(VCNL.getAmbientLight());
+    Serial.println(" ");
+    
 
-  Serial.print("Temperature: "); Serial.print(temp.temperature); Serial.println(" degrees C");
     delay(500);
+}
+
+void checkProximity() {
+    if (VCNL.getProximity() > 50) {
+        M5.Lcd.sleep();
+    } else {
+        M5.Lcd.wakeup();
+    }
+}
+
+void adjustLcdBrightness() {
+    M5.Lcd.setBrightness((VCNL.getAmbientLight() * 0.20));
 }
 
 
@@ -272,15 +297,35 @@ void loop() {
 // variables defined at the top of the screen.
 /////////////////////////////////////////////////////////////////
 void drawLocalDisplay() {
-    M5.Lcd.print("Here is the Humidity");
-    M5.Lcd.print("Here ");
-    
     //////////////////////////////////////////////////////////////////
     // Draw background - neutral tones
     //////////////////////////////////////////////////////////////////
+    long epoch = timeClient.getEpochTime();
+    timeOfLastUpdate = epoch_to_timestamp(epoch);
     uint16_t primaryTextColor = TFT_BLACK;
     M5.Lcd.fillScreen(TFT_LIGHTGREY);
+    int pad = 10;
+    M5.Lcd.setCursor(pad, pad);
+    M5.Lcd.setTextColor(primaryTextColor);
+    M5.Lcd.setTextSize(2);
+    M5.Lcd.drawString("Local Temperature: ", sWidth / 2, pad + 20);
 
+    if (tempState == T_Fahrenheit) {
+        M5.Lcd.setCursor(sWidth / 2 - 55, pad + 80);
+        M5.Lcd.printf("%.1f F\n", tempLocal);
+    } else {
+        double tempLocalC = ((tempLocal - 32.0) * 5.0)/9.0;
+        M5.Lcd.setCursor(sWidth / 2 - 55, pad + 80);
+        M5.Lcd.printf("%.1f C\n", tempLocalC);
+    }
+    M5.Lcd.drawString("Local Humidity: ", sWidth / 2, pad + 120);
+    M5.Lcd.setCursor(sWidth / 2 - 40, pad + 180);
+    M5.Lcd.printf("%.1f %\n", humidityLocal);
+
+    M5.Lcd.setTextSize(1);
+    M5.Lcd.drawString(timeOfLastUpdate, sWidth / 2, sHeight);
+    M5.Lcd.setCursor(sWidth / 3, sHeight / 2 + 80);
+    M5.Lcd.setTextColor(primaryTextColor);
 }
 
 
