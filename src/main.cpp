@@ -6,7 +6,6 @@
 #include <NTPClient.h>
 #include "../include/VCNL4040.h"
 #include "../include/SHT40.h"
-#include <Adafruit_SHT4x.h>
 ////////////////////////////////////////////////////////////////////
 // State
 ////////////////////////////////////////////////////////////////////
@@ -258,6 +257,8 @@ void loop() {
 
     checkProximity();
     adjustLcdBrightness();
+    tempLocal = (sht.getTemperature() * 9 / 5) + 32;
+    humidityLocal = sht.getHumidity();
 
     // Resetting state variables
     tempChangedThisLoop = false;

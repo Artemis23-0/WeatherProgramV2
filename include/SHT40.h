@@ -40,7 +40,7 @@ class SHT40
         void printI2cReturnStatus(byte returnStatus, int bytesWritten, const char action[]);
 
         // Main Write
-        //void enableTempHum();
+        void enableTempHum();
 
         // Main Read
         uint16_t getTemperature();
@@ -48,11 +48,10 @@ class SHT40
         
         // 8-bit register methods
         //uint16_t readReg8Addr16Data(byte regAddr, int numBytesToRead, String action, bool verbose);
-       // void writeReg8Addr16Data(byte regAddr, uint16_t data, String action, bool verbose);
-        //bool writeReg8Addr16DataWithProof(byte regAddr, int numBytesToWrite, uint16_t data, String action, bool verbose);
         
-        void writeWithBuff(uint8_t *data, int numBytesToWrite, String action, bool verbose);
-        
+        void writeReg8Addr96Data(uint8_t *command, String action, bool verbose);
+        bool writeReg8Addr96DataWithProof(uint8_t *command, String action, bool verbose);
+
         bool readWithBuffer(uint8_t *buffer, size_t len, bool stop);
         bool readHelper(uint8_t *buffer, size_t len, bool stop);
 
