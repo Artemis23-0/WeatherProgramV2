@@ -24,8 +24,6 @@ String apiKey = "0f4c9cbe9b2dc5d1b4445b61a58f2dd9";
 
 String wifiNetworkName = "CBU-LANCERS";
 String wifiPassword = "LiveY0urPurp0se";
-// String wifiNetworkName = "karman";
-// String wifiPassword = "112233009988";
 
 // Time variables
 unsigned long lastTime = 0;
@@ -128,11 +126,15 @@ void setup() {
     // Initialize I2C interface
     M5.begin();
     sht.init();
-    if (! sht.init()) {
+    if (!sht.init()) {
         Serial.println("Couldn't find SHT4x");
         while (1) delay(1);
     }
     VCNL.init();
+    if (!VCNL.init()) {
+        Serial.println("Couldn't find SHT4x");
+        while (1) delay(1);
+    }
 
     // Buttons
     M5.Buttons.setFont(FSS18);
@@ -163,9 +165,6 @@ void setup() {
     Serial.print("\n\nConnected to WiFi network with IP address: ");
     Serial.println(WiFi.localIP());
     timeClient.begin();
-
-    tempLocal = (sht.getTemperature() * 9 / 5) + 32;
-    humidityLocal = sht.getHumidity();
 }
 
 //pressed down buttons
@@ -176,7 +175,6 @@ void setup() {
 void loop() {
     // Update states
     M5.update();
-    timeClient.update();
 
     // Handling switching between screens
     if (M5.BtnB.wasPressed()) {
@@ -189,7 +187,7 @@ void loop() {
         lastTime = millis();
     }
 
-    if(M5.BtnC.wasPressed()){
+    if (M5.BtnC.wasPressed()){
         if(screen == S_LOCAL){
             screen = S_WEATHER;
         } else {
@@ -200,7 +198,7 @@ void loop() {
     }
 
     // Handling Temperature
-    if(M5.BtnA.wasPressed()) {
+    if (M5.BtnA.wasPressed()) {
         if (tempState == T_Fahrenheit) {
             tempState = T_Celsius;
         } else {
@@ -210,25 +208,6 @@ void loop() {
         lastTime = millis();
     }
 
-    // Only execute every so often
-    if ((millis() - lastTime) > timerDelay) {
-        if (WiFi.status() == WL_CONNECTED) {
-            if (screen == S_WEATHER) {
-                fetchWeatherDetails();
-                drawWeatherDisplay();
-            }
-            if (screen == S_LOCAL) {
-                tempLocal = (sht.getTemperature() * 9 / 5) + 32;
-                humidityLocal = sht.getHumidity();
-                drawLocalDisplay();
-            }
-        } else {
-            Serial.println("WiFi Disconnected");
-        }
-        // Update the last time to NOW
-        lastTime = millis();
-    }
-    
     // Changing to and from screens
     if (stateChangedThisLoop) {
         if (screen == S_WEATHER) {
@@ -257,17 +236,35 @@ void loop() {
 
     checkProximity();
     adjustLcdBrightness();
-    tempLocal = (sht.getTemperature() * 9 / 5) + 32;
-    humidityLocal = sht.getHumidity();
+
+    // Only execute every so often
+    if ((millis() - lastTime) > timerDelay) {
+        if (WiFi.status() == WL_CONNECTED) {
+            if (screen == S_WEATHER) {
+                fetchWeatherDetails();
+                drawWeatherDisplay();
+            }
+            if (screen == S_LOCAL) {
+                tempLocal = (sht.getTemperature() * 9 / 5) + 32;
+                humidityLocal = sht.getHumidity();
+                drawLocalDisplay();
+            }
+        } else {
+            Serial.println("WiFi Disconnected");
+        }
+        // Update the last time to NOW
+        lastTime = millis();
+    }
 
     // Resetting state variables
     tempChangedThisLoop = false;
     zipChangedThisLoop = false;
     stateChangedThisLoop = false;
 
-
+    timeClient.update();
+    
     Serial.print("Temperature: "); 
-    Serial.print(tempLocal); Serial.println(" C");
+    Serial.print(tempLocal); Serial.println(" F");
     Serial.print("Humidity: ");
     Serial.print(humidityLocal); Serial.println(" %");
     Serial.print("Proximity: ");
@@ -275,9 +272,6 @@ void loop() {
     Serial.print("Ambient Light: ");
     Serial.println(VCNL.getAmbientLight());
     Serial.println(" ");
-    
-
-    delay(500);
 }
 
 void checkProximity() {
@@ -289,9 +283,7 @@ void checkProximity() {
 }
 
 void adjustLcdBrightness() {
-    //.M5.Lcd.setBrightness((VCNL.getAmbientLight() * 0.20));
-    //M5.Axp.SetLcdVoltage((2500 + ((VCNL.getAmbientLight()+20)*2.5))); // v from 2500 to 3300
-    M5.Axp.SetLcdVoltage(2500 + VCNL.getAmbientLight());
+    M5.Axp.SetLcdVoltage(2600 + VCNL.getAmbientLight());
 }
 
 
@@ -300,6 +292,10 @@ void adjustLcdBrightness() {
 // variables defined at the top of the screen.
 /////////////////////////////////////////////////////////////////
 void drawLocalDisplay() {
+    sht.update();
+    tempLocal = (sht.getTemperature() * 9 / 5) + 32;
+    humidityLocal = sht.getHumidity();
+
     //////////////////////////////////////////////////////////////////
     // Draw background - neutral tones
     //////////////////////////////////////////////////////////////////

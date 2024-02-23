@@ -1,21 +1,17 @@
 #include "../include/VCNL4040.h"
 
 ///////////////////////////////////////////////////////////////
-// Variables
-///////////////////////////////////////////////////////////////
-int const PIN_SDA = 32;
-int const PIN_SCL = 33;
-
-///////////////////////////////////////////////////////////////
 // Constructors and initializers
 ///////////////////////////////////////////////////////////////
 VCNL4040::VCNL4040(void) {}
 
-void VCNL4040::init() {
+bool VCNL4040::init(TwoWire *theWire) {
+    // Initialize I2C interface
+    _wire = theWire;
+    _wire->begin();
+
     bool connectionFound = false;
     int tries = 0;
-    // Initialize I2C interface
-    Wire.begin(PIN_SDA, PIN_SCL, 400000);
 
     // See if the device is connected
     while (!connectionFound && tries < 10) {
@@ -27,16 +23,19 @@ void VCNL4040::init() {
         VCNL4040::enableAmbientLight();
         VCNL4040::enableWhiteLight();
         VCNL4040::enableProximity();
+        return true;
     } else {
         Serial.println("Could not connect to VCNL4040");
+        return false;
     }
+    return false;
 }
 
 bool VCNL4040::scanForVCNLConnection(bool verbose) {
     byte error;
 
-    Wire.beginTransmission(VCNL_I2C_ADDRESS);
-    error = Wire.endTransmission();
+    _wire->beginTransmission(VCNL_I2C_ADDRESS);
+    error = _wire->endTransmission();
     if (error == 0) {
         char message[20];
         VCNL4040::printI2cReturnStatus(error, 0, message);
@@ -63,13 +62,13 @@ bool VCNL4040::enableAmbientLight() {
 
 void VCNL4040::writeReg8Addr16Data(byte regAddr, uint16_t data, String action, bool verbose) {
     // Enable I2C connection
-    Wire.beginTransmission(VCNL_I2C_ADDRESS);
+    _wire->beginTransmission(VCNL_I2C_ADDRESS);
 
     // Prepare and write address, data and end transmission
-    int bytesWritten = Wire.write(regAddr);
-    bytesWritten += Wire.write(data & 0xFF);  // Write LSB
-    bytesWritten += Wire.write(data >> 8);  // Write MSB
-    byte returnStatus = Wire.endTransmission(); // (to send all data)
+    int bytesWritten = _wire->write(regAddr);
+    bytesWritten += _wire->write(data & 0xFF);  // Write LSB
+    bytesWritten += _wire->write(data >> 8);  // Write MSB
+    byte returnStatus = _wire->endTransmission(); // (to send all data)
     if (verbose)
         VCNL4040::printI2cReturnStatus(returnStatus, bytesWritten, action.c_str());
 }
@@ -118,25 +117,25 @@ uint16_t VCNL4040::readReg8Addr16Data(byte regAddr, int numBytesToRead, String a
     int maxRetries = 50;
     for (int i = 0; i < maxRetries; i++) {
         // Enable I2C connection
-        Wire.beginTransmission(VCNL_I2C_ADDRESS);
+        _wire->beginTransmission(VCNL_I2C_ADDRESS);
 
         // Prepare and write address - MSB first and then LSB
         int bytesWritten = 0;
-        bytesWritten += Wire.write(regAddr);
+        bytesWritten += _wire->write(regAddr);
 
         // End transmission (not writing...reading)
-        byte returnStatus = Wire.endTransmission(false);
+        byte returnStatus = _wire->endTransmission(false);
         if (verbose)
             VCNL4040::printI2cReturnStatus(returnStatus, bytesWritten, action.c_str());
 
         // Read data from above address
-        Wire.requestFrom(VCNL_I2C_ADDRESS, numBytesToRead);
+        _wire->requestFrom(VCNL_I2C_ADDRESS, numBytesToRead);
 
         // Grab the data from the data line
-        if (Wire.available() == numBytesToRead) {
+        if (_wire->available() == numBytesToRead) {
             uint16_t data = 0;
-            uint8_t lsb = Wire.read();
-            uint8_t msb = Wire.read();
+            uint8_t lsb = _wire->read();
+            uint8_t msb = _wire->read();
             data = ((uint16_t)msb << 8 | lsb);
           
             if (verbose)
@@ -183,8 +182,8 @@ void VCNL4040::scanI2cLinesForAddresses(bool verboseConnectionFailures) {
     // Scan all possible addresses
     bool addressesFound[128] = {false};
     for (address = 0; address < 128; address++) {
-        Wire.beginTransmission(address);
-        error = Wire.endTransmission();
+        _wire->beginTransmission(address);
+        error = _wire->endTransmission();
         if (error == 0) {
             // Serial.printf("\tSTATUS: I2C device found at address 0x%02X\n", address);
             addressesFound[address] = true;

@@ -25,25 +25,28 @@ class VCNL4040
         VCNL4040();
 
         // Initialization and debugging methods
-        static void init(void);
-        static bool scanForVCNLConnection(bool verbose);
-        static void printI2cReturnStatus(byte returnStatus, int bytesWritten, const char action[]);
+        bool init(TwoWire *theWire = &Wire);
+        bool scanForVCNLConnection(bool verbose);
+        void printI2cReturnStatus(byte returnStatus, int bytesWritten, const char action[]);
 
         // Main Write
-        static bool enableProximity();
-        static bool enableWhiteLight();
-        static bool enableAmbientLight();
+        bool enableProximity();
+        bool enableWhiteLight();
+        bool enableAmbientLight();
 
         // Main Read
-        static uint16_t getProximity();
-        static uint16_t getWhiteLight();
-        static uint16_t getAmbientLight();
+        uint16_t getProximity();
+        uint16_t getWhiteLight();
+        uint16_t getAmbientLight();
         
         // 8-bit register methods
-        static uint16_t readReg8Addr16Data(byte regAddr, int numBytesToRead, String action, bool verbose);
-        static void writeReg8Addr16Data(byte regAddr, uint16_t data, String action, bool verbose);
-        static bool writeReg8Addr16DataWithProof(byte regAddr, int numBytesToWrite, uint16_t data, String action, bool verbose);
-        static void scanI2cLinesForAddresses(bool verboseConnectionFailures);
+        uint16_t readReg8Addr16Data(byte regAddr, int numBytesToRead, String action, bool verbose);
+        void writeReg8Addr16Data(byte regAddr, uint16_t data, String action, bool verbose);
+        bool writeReg8Addr16DataWithProof(byte regAddr, int numBytesToWrite, uint16_t data, String action, bool verbose);
+        void scanI2cLinesForAddresses(bool verboseConnectionFailures);
+
+    private:
+        TwoWire *_wire;
 };
 
 #endif

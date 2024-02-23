@@ -8,24 +8,8 @@
 
 #define SHT_I2C_ADDRESS 0x44 // Address of the sensor
 
-// Data Registers
-//#define SHT_REG_TEMP_HUM_DATA //Temperature & Humidity
-#define SHT_REG_HUM_DATA 0x0401 // Humidity
-#define SHT_REG_TEMP_DATA 0x0400 // Temperature
-
-// Config Registers
-#define SHT_REG_TEMP_HUM_CONFIG 0x00  // Temperatrue & Humidity
-
 // Commands
-#define SHT_NOHEAT_HIGH 0xFD /**< High precision measurement, no heater */
-#define SHT_NOHEAT_MED  0xF6 /**< Medium precision measurement, no heater */
-
-#define SHT_HIGHHEAT_1S  0x39 /**< High precision measurement, high heat for 1 sec */
-#define SHT_HIGHHEAT_100MS  0x32 /**< High precision measurement, high heat for 0.1 sec */
-#define SHT_MEDHEAT_1S 0x2F /**< High precision measurement, med heat for 1 sec */
-#define SHT_MEDHEAT_100MS 0x24 /**< High precision measurement, med heat for 0.1 sec */
-#define SHT_LOWHEAT_1S 0x1E /**< High precision measurement, low heat for 1 sec */
-#define SHT_LOWHEAT_100MS 0x15 /**< High precision measurement, low heat for 0.1 sec */
+#define SHT_NOHEAT_MED  0xF6 // Medium precision measurement, no heater
 
 
 class SHT40
@@ -39,24 +23,15 @@ class SHT40
         bool scanForSHTConnection(bool verbose);
         void printI2cReturnStatus(byte returnStatus, int bytesWritten, const char action[]);
 
-        // Main Write
-        void enableTempHum();
-
         // Main Read
+        bool update();
         uint16_t getTemperature();
         uint16_t getHumidity();
-        
-        // 8-bit register methods
-        //uint16_t readReg8Addr16Data(byte regAddr, int numBytesToRead, String action, bool verbose);
-        
-        void writeReg8Addr96Data(uint8_t *command, String action, bool verbose);
-        bool writeReg8Addr96DataWithProof(uint8_t *command, String action, bool verbose);
-
-        bool readWithBuffer(uint8_t *buffer, size_t len, bool stop);
-        bool readHelper(uint8_t *buffer, size_t len, bool stop);
 
     private:
         TwoWire *_wire;
+        uint16_t _temperature;
+        uint16_t _humidity;
 };
 
 #endif
