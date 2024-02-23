@@ -175,6 +175,7 @@ void setup() {
 void loop() {
     // Update states
     M5.update();
+    timeClient.update();
 
     // Handling switching between screens
     if (M5.BtnB.wasPressed()) {
@@ -261,8 +262,6 @@ void loop() {
     zipChangedThisLoop = false;
     stateChangedThisLoop = false;
 
-    timeClient.update();
-    
     Serial.print("Temperature: "); 
     Serial.print(tempLocal); Serial.println(" F");
     Serial.print("Humidity: ");
