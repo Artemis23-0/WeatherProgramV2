@@ -8,9 +8,11 @@
 
 #define SHT_I2C_ADDRESS 0x44 // Address of the sensor
 
-// Commands
-#define SHT_NOHEAT_MED  0xF6 // Medium precision measurement, no heater
+// Command
+#define TEMP_HUM_COMMAND  0xF6
 
+#define PIN_SDA 32
+#define PIN_SCL 33
 
 class SHT40
 {
@@ -19,7 +21,7 @@ class SHT40
         SHT40();
 
         // Initialization and debugging methods
-        bool init(TwoWire *theWire = &Wire);
+        bool init();
         bool scanForSHTConnection(bool verbose);
         void printI2cReturnStatus(byte returnStatus, int bytesWritten, const char action[]);
 
@@ -29,7 +31,6 @@ class SHT40
         uint16_t getHumidity();
 
     private:
-        TwoWire *_wire;
         uint16_t _temperature;
         uint16_t _humidity;
 };

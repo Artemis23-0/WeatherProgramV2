@@ -7,9 +7,9 @@
 ///////////////////////////////////////////////////////////////
 SHT40::SHT40() {}
 
-bool SHT40::init(TwoWire *theWire) {
-    _wire = theWire;
-    _wire->begin();
+bool SHT40::init() {
+    // Initialize I2C interface
+    Wire.begin(PIN_SDA, PIN_SCL, 400000);
     
     bool connectionFound = false;
     int tries = 0;
@@ -30,8 +30,8 @@ bool SHT40::init(TwoWire *theWire) {
 bool SHT40::scanForSHTConnection(bool verbose) {
     byte error;
 
-    _wire->beginTransmission(SHT_I2C_ADDRESS);
-    error = _wire->endTransmission();
+    Wire.beginTransmission(SHT_I2C_ADDRESS);
+    error = Wire.endTransmission();
     if (error == 0) {
         char message[20];
         SHT40::printI2cReturnStatus(error, 0, message);
@@ -48,38 +48,35 @@ bool SHT40::scanForSHTConnection(bool verbose) {
 // Reading
 ///////////////////////////////////////////////////////////////
 bool SHT40::update() {
-    uint8_t command = SHT_NOHEAT_MED;
-
 // Attempts a number of retries in case the data is not initially ready
     int maxRetries = 50;
     for (int i = 0; i < maxRetries; i++) {
         // Activate Line
-        _wire->beginTransmission(SHT_I2C_ADDRESS);
+        Wire.beginTransmission(SHT_I2C_ADDRESS);
 
         // Prepare and write address, data and end transmission
-        Serial.println("Writing Bytes");
-        int bytesWritten = _wire->write(command);
-        byte returnStatus = _wire->endTransmission();
+        int bytesWritten = Wire.write(TEMP_HUM_COMMAND);
+        byte returnStatus = Wire.endTransmission();
 
         delay(10);
 
         // Read data from above address
-        _wire->requestFrom((uint8_t)SHT_I2C_ADDRESS, (uint8_t)6);
+        Wire.requestFrom(SHT_I2C_ADDRESS, 6);
         
         // Grab the data from the data line
-        if (_wire->available() == 6) {
+        if (Wire.available() == 6) {
             float tempData = 0;
             float humData = 0;
 
             // Temp Data
-            uint8_t msb = _wire->read();
-            uint8_t lsb = _wire->read();
-            uint8_t crc1 = _wire->read(); // Don't care about this
+            uint8_t msb = Wire.read();
+            uint8_t lsb = Wire.read();
+            uint8_t crc1 = Wire.read(); // Don't care about this
 
             // Humidity Data
-            uint8_t msb2 = _wire->read();
-            uint8_t lsb2 = _wire->read();
-            uint8_t crc2 = _wire->read(); // Don't care about this
+            uint8_t msb2 = Wire.read();
+            uint8_t lsb2 = Wire.read();
+            uint8_t crc2 = Wire.read(); // Don't care about this
 
             tempData = (float) ((uint16_t)msb << 8 | lsb);
             humData = (float) ((uint16_t)msb2 << 8 | lsb2);

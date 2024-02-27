@@ -261,16 +261,6 @@ void loop() {
     tempChangedThisLoop = false;
     zipChangedThisLoop = false;
     stateChangedThisLoop = false;
-
-    Serial.print("Temperature: "); 
-    Serial.print(tempLocal); Serial.println(" F");
-    Serial.print("Humidity: ");
-    Serial.print(humidityLocal); Serial.println(" %");
-    Serial.print("Proximity: ");
-    Serial.println(VCNL.getProximity());
-    Serial.print("Ambient Light: ");
-    Serial.println(VCNL.getAmbientLight());
-    Serial.println(" ");
 }
 
 void checkProximity() {
@@ -318,7 +308,7 @@ void drawLocalDisplay() {
     }
     M5.Lcd.drawString("Local Humidity: ", sWidth / 2, pad + 120);
     M5.Lcd.setCursor(sWidth / 2 - 40, pad + 180);
-    M5.Lcd.printf("%.1f %\n", humidityLocal);
+    M5.Lcd.printf("%.1f %% \n", humidityLocal);
 
     M5.Lcd.setTextSize(1);
     M5.Lcd.drawString(timeOfLastUpdate, sWidth / 2, sHeight);

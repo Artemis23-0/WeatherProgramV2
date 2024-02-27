@@ -5,7 +5,6 @@
 #include "Arduino.h"
 #include <Wire.h>    // I2C library
 
-
 #define VCNL_I2C_ADDRESS 0x60 // Address of the sensor
 
 // Data Registers
@@ -18,6 +17,9 @@
 #define VCNL_REG_ALS_CONFIG 0x00 // Ambient Light
 #define VCNL_REG_WHITE_CONFIG 0x04 // White Light
 
+#define PIN_SDA 32
+#define PIN_SCL 33
+
 class VCNL4040
 {
     public:
@@ -25,7 +27,7 @@ class VCNL4040
         VCNL4040();
 
         // Initialization and debugging methods
-        bool init(TwoWire *theWire = &Wire);
+        bool init();
         bool scanForVCNLConnection(bool verbose);
         void printI2cReturnStatus(byte returnStatus, int bytesWritten, const char action[]);
 
@@ -43,10 +45,6 @@ class VCNL4040
         uint16_t readReg8Addr16Data(byte regAddr, int numBytesToRead, String action, bool verbose);
         void writeReg8Addr16Data(byte regAddr, uint16_t data, String action, bool verbose);
         bool writeReg8Addr16DataWithProof(byte regAddr, int numBytesToWrite, uint16_t data, String action, bool verbose);
-        void scanI2cLinesForAddresses(bool verboseConnectionFailures);
-
-    private:
-        TwoWire *_wire;
 };
 
 #endif
